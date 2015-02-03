@@ -1,5 +1,5 @@
 console.log "test"
-# require! angular
+require! angular
 # console.log "angular", angular
 
 # app = angular.module \app, []
