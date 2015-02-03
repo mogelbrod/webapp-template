@@ -18,19 +18,6 @@ gulp.task \watchify, ->
     .on \time, (time) -> gulp-util.log "Browserify finished after #time ms"
   browserify-bundle-handler bundler.bundle!
 
-#browserify-handler = (bundle) ->
-#  bundle
-#    .on \error, gulp-util.log.bind gulp-util, "Browserify error"
-#    .pipe vinyl-source-stream config.dest.browserify
-#    .pipe gulp.dest \.
-#
-#gulp.task \browserify, ->
-#  browserify-handler browserify(config.src.browserify).bundle!
-#
-#gulp.task \watchify, ->
-#  w = watchify browserify config.src.browserify, watchify.args
-#  w.on \update, -> browserify-handler w.bundle!
-
 gulp.task \views, ->
   gulp.src config.src.views
     .pipe gulp-jade {locals: config.jade-locals}
