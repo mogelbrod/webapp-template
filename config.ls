@@ -1,11 +1,9 @@
 module.exports = config =
   port: 3000
   livereload: 35729
-  env: \development
+  environment: \development
 
   server: \./server
-
-  jade-locals: {}
 
   src:
     browserify:      \./client/scripts.ls
@@ -20,4 +18,6 @@ module.exports = config =
     component-views: \_build/components
     styles:          \_build/styles
 
-config.jade-locals.livereload = config.livereload
+config.jade-locals =
+  livereload: config.livereload
+  environment: config.environment

@@ -1,7 +1,9 @@
 require! \./config
 
-require! <[ gulp gulp-util gulp-live-server gulp-livescript gulp-stylus gulp-jade ]>
+require! <[ gulp gulp-util gulp-watch gulp-live-server gulp-livescript gulp-stylus gulp-jade ]>
 require! <[ browserify watchify vinyl-source-stream vinyl-buffer del ]>
+
+node-env = config.env ? \development
 
 function browserify-bundle-handler(bundle)
   bundle
@@ -18,20 +20,24 @@ gulp.task \watchify, ->
     .on \time, (time) -> gulp-util.log "Browserify finished after #time ms"
   browserify-bundle-handler bundler.bundle!
 
-gulp.task \views, ->
-  gulp.src config.src.views
-    .pipe gulp-jade {locals: config.jade-locals}
-    .pipe gulp.dest config.dest.views
+function generate-build-task(name, key, pipe)
+  gulp.task name, ->
+    gulp.src config.src[key]
+      .pipe pipe
+      .pipe gulp.dest config.dest[key]
 
-gulp.task \component-views, ->
-  gulp.src config.src.component-views
-    .pipe gulp-jade {locals: config.jade-locals}
-    .pipe gulp.dest config.dest.component-views
+  gulp.task "#name:watch", ->
+    gulp.src config.src[key]
+      .pipe gulp-watch config.src[key], verbose: true
+      .pipe pipe
+      .pipe gulp.dest config.dest[key]
 
-gulp.task \styles, ->
-  gulp.src config.src.styles
-    .pipe gulp-stylus!
-    .pipe gulp.dest config.dest.styles
+generate-build-task \views, \views,
+  gulp-jade {locals: config.jade-locals}
+generate-build-task \component-views, \componentViews,
+  gulp-jade {locals: config.jade-locals}
+generate-build-task \styles, \styles,
+  gulp-stylus!
 
 gulp.task \clean, (cb) ->
   del [config.dest.root + \/**], cb
@@ -40,18 +46,16 @@ gulp.task \clean, (cb) ->
 gulp.task \build, <[ clean browserify views component-views styles ]>
 gulp.task \default <[ build ]>
 
-gulp.task \watch, <[ watchify ]>, ->
-  gulp.watch config.src.views, <[ views ]>
-  gulp.watch config.src.component-views, <[ component-views ]>
-  gulp.watch config.src.styles, <[ styles ]>
+gulp.task \watch, <[ watchify views:watch component-views:watch styles:watch ]>, ->
 
-gulp.task \server, <[ build watch ]>, ->
-  env = NODE_ENV: config.env ? \development
-  server = gulp-live-server [config.server], {env}, config.livereload
+gulp.task \server, ->
+  server = gulp-live-server [config.server], {env: NODE_ENV: node-env}, config.livereload
   server.start!
 
+  gulp.start \watch
+
   # Restart server on changes
-  gulp.watch [
+  gulp-watch [
     "#{config.server}/**/*.{js,ls}"
     "gulpfile.ls"
     "config.ls"
@@ -60,4 +64,4 @@ gulp.task \server, <[ build watch ]>, ->
     server.start event
 
   # Trigger LiveReload on client asset changes
-  gulp.watch config.dest.root, [server.notify]
+  gulp-watch config.dest.root + "/**/*.{js,html,css}", server.notify
