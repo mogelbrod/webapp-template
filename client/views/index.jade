@@ -2,7 +2,7 @@ doctype html
 html(ng-app="app")
   head
     title Web app template
-    script(src="/scripts.js")
   body
-    input(type="text" ng-model="name")
-    h1 {{name}}
+    script(src="/scripts.js")
+    if environment == 'development' && livereload
+      script(src="//localhost:#{livereload}/livereload.js")
