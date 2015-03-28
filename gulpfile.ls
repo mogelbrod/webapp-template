@@ -1,6 +1,6 @@
 require! \./config
 
-require! <[ gulp gulp-util gulp-express gulp-livescript gulp-stylus gulp-jade ]>
+require! <[ gulp gulp-util gulp-live-server gulp-livescript gulp-stylus gulp-jade ]>
 require! <[ browserify watchify vinyl-source-stream vinyl-buffer del ]>
 
 function browserify-bundle-handler(bundle)
@@ -46,12 +46,9 @@ gulp.task \watch, <[ watchify ]>, ->
   gulp.watch config.src.styles, <[ styles ]>
 
 gulp.task \server, <[ build watch ]>, ->
-  start = ->
-    gulp-util.log "Starting server"
-    gulp-express.run do
-      file: config.server
-      port: config.livereload
-  start!
+  env = NODE_ENV: config.env ? \development
+  server = gulp-live-server [config.server], {env}, config.livereload
+  server.start!
 
   # Restart server on changes
   gulp.watch [
@@ -60,7 +57,7 @@ gulp.task \server, <[ build watch ]>, ->
     "config.ls"
   ], (event) ->
     gulp-util.log "Server changed:", event.path
-    start!
+    server.start event
 
   # Trigger LiveReload on client asset changes
-  gulp.watch config.dest.root, [gulp-express.notify]
+  gulp.watch config.dest.root, [server.notify]

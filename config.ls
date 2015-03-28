@@ -1,6 +1,7 @@
 module.exports = config =
   port: 3000
   livereload: 35729
+  env: \development
 
   server: \./server
 
